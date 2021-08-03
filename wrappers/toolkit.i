@@ -23,7 +23,7 @@
     Py_INCREF($result);
 }
 
-%apply long *OUT {
+%apply long *INOUT {
     long *t,
     long *tleft
 };

@@ -1,0 +1,4 @@
+[submodule "epanet-msx"]
+	path = epanet-msx
+	url = https://github.com/karrowood/epanet-msx.git
+	branch = feature-api-augment
