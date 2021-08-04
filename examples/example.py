@@ -27,6 +27,10 @@ def example(fname):
     msx.addNode("c")
     msx.addNode("e")
     msx.addReservoir("source", 0,0,0)
+
+    
+    # id = msx.getID(msx.NODE, 1, msx.MAXID)
+
     # Add links
     msx.addLink("1", "source", "a", 1000, 200, 100)
     msx.addLink("2", "a", "b", 800, 150, 100)
@@ -48,6 +52,8 @@ def example(fname):
     msx.addSpecies("AStot", msx.BULK, msx.UG, 0.0, 0.0)
     msx.addSpecies("AS5s", msx.WALL, msx.UG, 0.0, 0.0)
     msx.addSpecies("NH2CL", msx.BULK, msx.MG, 0.0, 0.0)
+
+    #type, units, aTol, rTol = msx.getspecies(5)
     
     #Add Coefficents
     msx.addCoefficeint(msx.CONSTANT, "Ka", 10.0)
@@ -102,13 +108,12 @@ def example(fname):
     # saving results to binary out file and then calling the MSXreport function
     while (tleft >= 0 and err == 0):
         if ( oldHour != newHour ):
-            print(f"\r  o Computing water quality at hour {newHour}", flush=True)
+            print(f"\r  o Computing water quality at hour {newHour}", flush=True, end="")
             msx.printQuality(msx.LINK, "4", "AS5s", fname)
             msx.printQuality(msx.LINK, "5", "AS5s", fname)
             oldHour = newHour
         t, tleft = msx.step(t, tleft)
         newHour = t / 3600
-    print("\n")
 
 
 

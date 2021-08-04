@@ -4,4 +4,4 @@
 
 python setup.py sdist bdist_wheel
 
-pip install dist/*.whl
+pip install --force-reinstall dist/*.whl
