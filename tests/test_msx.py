@@ -1,18 +1,10 @@
+import pytest
 from epanetmsx import toolkit as msx
 
-MINUTE = 60
-HOUR = 60 * 60
 
-def make_array(values):
-    arr = msx.floatArray(len(values))
-    for i in range(len(values)):
-        arr[i] = values[i]
-    return arr
-
-def example(fname):
-    err = 0
+def create_example():
     msx.open()
-
+    HOUR = 60 * 60
     # Builing the network from example.inp
     msx.setFlowFlag(msx.CMH)
     msx.setTimeParameter(msx.DURATION, 80*HOUR)
@@ -22,21 +14,18 @@ def example(fname):
     msx.setTimeParameter(msx.REPORTSTART, 0)
 
     # Add nodes
-    msx.addNode("a")
-    msx.addNode("b")
-    msx.addNode("c")
-    msx.addNode("e")
+    msx.addNode("first")
+    msx.addNode("second")
+    msx.addNode("third")
+    msx.addNode("fourth")
     msx.addReservoir("source", 0,0,0)
 
-    
-    # id = msx.getID(msx.NODE, 1, msx.MAXID)
-
     # Add links
-    msx.addLink("1", "source", "a", 1000, 200, 100)
-    msx.addLink("2", "a", "b", 800, 150, 100)
-    msx.addLink("3", "a", "c", 1200, 200, 100)
-    msx.addLink("4", "b", "c", 1000, 150, 100)
-    msx.addLink("5", "c", "e", 2000, 150, 100)
+    msx.addLink("1", "source", "first", 1000, 200, 100)
+    msx.addLink("2", "first", "second", 800, 150, 100)
+    msx.addLink("3", "first", "third", 1200, 200, 100)
+    msx.addLink("4", "second", "third", 1000, 150, 100)
+    msx.addLink("5", "third", "fourth", 2000, 150, 100)
 
     # Add Options
     msx.addOption(msx.AREA_UNITS_OPTION, "M2")
@@ -52,8 +41,6 @@ def example(fname):
     msx.addSpecies("AStot", msx.BULK, msx.UG, 0.0, 0.0)
     msx.addSpecies("AS5s", msx.WALL, msx.UG, 0.0, 0.0)
     msx.addSpecies("NH2CL", msx.BULK, msx.MG, 0.0, 0.0)
-
-    #type, units, aTol, rTol = msx.getspecies(5)
     
     #Add Coefficents
     msx.addCoefficeint(msx.CONSTANT, "Ka", 10.0)
@@ -80,37 +67,17 @@ def example(fname):
     #Add Quality
     msx.addQuality("NODE", "AS3", 10.0, "source")
     msx.addQuality("NODE", "NH2CL", 2.5, "source")
+    return
 
-    # Finish Setup
-    msx.init()
 
-    # Run
-    demands = make_array([0.040220, 0.033353, 0.053953, 0.022562, -0.150088])
-    heads = make_array([327.371979, 327.172974, 327.164185, 326.991211, 328.083984])
-    flows = make_array([0.150088, 0.039916, 0.069952, 0.006563, 0.022562])
-    msx.setHydraulics(demands, heads, flows)
-    t = 0
-    tleft = 1
-    oldHour = -1
-    newHour = 0
-
-    # Example of using the printQuality function in the loop rather than
-    # saving results to binary out file and then calling the MSXreport function
-    while (tleft >= 0 and err == 0):
-        if ( oldHour != newHour ):
-            print(f"\r  o Computing water quality at hour {newHour}", flush=True, end="")
-            msx.printQuality(msx.LINK, "4", "AS5s", fname)
-            msx.printQuality(msx.LINK, "5", "AS5s", fname)
-            oldHour = newHour
-        t, tleft = msx.step(t, tleft)
-        newHour = t // 3600
-
-    # Close
+def test_get_count():
+    create_example()
+    assert msx.getcount(msx.NODE) == 5
+    assert msx.getcount(msx.TANK) == 1
+    assert msx.getcount(msx.LINK) == 5
+    assert msx.getcount(msx.SPECIES) == 5
+    assert msx.getcount(msx.PARAMETER) == 0
+    assert msx.getcount(msx.CONSTANT) == 5
+    assert msx.getcount(msx.PATTERN) == 0
     msx.close()
 
-    return err
-
-# Main
-if __name__ == "__main__":
-    err = 0
-    err = example("out.rpt")

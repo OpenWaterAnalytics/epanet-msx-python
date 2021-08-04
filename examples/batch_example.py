@@ -125,7 +125,7 @@ def batchExample(fname):
     # saving results to binary out file and then calling the msx.report function
     while (tleft >= 0 and err == 0):
         if ( oldHour != newHour ):
-            print(f"\r  o Computing water quality at hour {newHour}", flush = True)
+            print(f"\r  o Computing water quality at hour {newHour}", flush=True, end="")
             msx.printQuality(msx.NODE, "1", "chloramine", fname)
             oldHour = newHour
         t, tleft = msx.step(t, tleft)
@@ -142,4 +142,4 @@ def batchExample(fname):
 # Main
 if __name__ == "__main__":
     err = 0
-    err = batchExample("")
+    err = batchExample("out.rpt")
