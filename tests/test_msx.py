@@ -1,6 +1,11 @@
 import pytest
 from epanetmsx import toolkit as msx
 
+def make_array(values):
+    arr = msx.floatArray(len(values))
+    for i in range(len(values)):
+        arr[i] = values[i]
+    return arr
 
 def create_example():
     msx.open()
@@ -70,7 +75,38 @@ def create_example():
     return
 
 
-def test_get_count():
+def test_getindex():
+    create_example()
+    assert msx.getindex(msx.NODE, "second") == 2
+    assert msx.getindex(msx.NODE, "source") == 5
+    assert msx.getindex(msx.TANK, "source") == 1
+    assert msx.getindex(msx.LINK, "2") == 2
+    assert msx.getindex(msx.SPECIES, "AS5") == 2
+    assert msx.getindex(msx.CONSTANT, "Kb") == 2
+    msx.close()
+
+def test_getIDlen():
+    create_example()
+    assert msx.getIDlen(msx.NODE, 2) == 6
+    assert msx.getIDlen(msx.NODE, 5) == 6
+    assert msx.getIDlen(msx.TANK, 1) == 6
+    assert msx.getIDlen(msx.LINK, 2) == 1
+    assert msx.getIDlen(msx.SPECIES, 2) == 3
+    assert msx.getIDlen(msx.CONSTANT, 2) == 2
+    msx.close()
+
+def test_getID():
+    create_example()
+    assert msx.getID(msx.NODE, 2, msx.MAXID) == "second"
+    assert msx.getID(msx.NODE, 5, msx.MAXID) == "source"
+    assert msx.getID(msx.TANK, 1, msx.MAXID) == "source"
+    assert msx.getID(msx.LINK, 2, msx.MAXID) == "2"
+    assert msx.getID(msx.SPECIES, 2, msx.MAXID) == "AS5"
+    assert msx.getID(msx.CONSTANT, 2, msx.MAXID) == "Kb"
+    msx.close()
+
+
+def test_getcount():
     create_example()
     assert msx.getcount(msx.NODE) == 5
     assert msx.getcount(msx.TANK) == 1
@@ -80,4 +116,39 @@ def test_get_count():
     assert msx.getcount(msx.CONSTANT) == 5
     assert msx.getcount(msx.PATTERN) == 0
     msx.close()
+
+def test_getspecies():
+    msx.open()
+    msx.addSpecies("AS3", msx.BULK, msx.UG, 3.0, 5.0)
+    msx.addSpecies("AS5", msx.BULK, msx.MG, 6.0, 10.0)
+    msx.addSpecies("AStot", msx.WALL, msx.UG, 90.0, 5.0)
+    type, units, aTol, rTol = msx.getspecies(1)
+    assert type == msx.BULK and units == "UG" and aTol == 3.0 and rTol == 5.0
+    type, units, aTol, rTol = msx.getspecies(2)
+    assert type == msx.BULK and units == "MG" and aTol == 6.0 and rTol == 10.0
+    type, units, aTol, rTol = msx.getspecies(3)
+    assert type == msx.WALL and units == "UG" and aTol == 90.0 and rTol == 5.0
+    msx.close()
+
+def test_sim1():
+    create_example()
+    msx.init()
+    demands = make_array([0.040220, 0.033353, 0.053953, 0.022562, -0.150088])
+    heads = make_array([327.371979, 327.172974, 327.164185, 326.991211, 328.083984])
+    flows = make_array([0.150088, 0.039916, 0.069952, 0.006563, 0.022562])
+    msx.setHydraulics(demands, heads, flows)
+    t = 0
+    tleft = -1
+    qual = []
+    for _ in range(5):
+        t, tleft = msx.step(t, tleft)
+        qual.append(round(msx.getQualityByID(msx.LINK, "5", "AS5s"), 5))
+    assert qual == [0.00013, 0.00009, 0.00004, 0.54024, 3.69831]
+
+
+    
+
+
+
+
 
