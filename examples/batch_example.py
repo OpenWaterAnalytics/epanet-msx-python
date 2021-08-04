@@ -128,7 +128,7 @@ def batchExample(fname):
             print(f"\r  o Computing water quality at hour {newHour}", flush=True, end="")
             msx.printQuality(msx.NODE, "1", "chloramine", fname)
             oldHour = newHour
-        t, tleft = msx.step(t, tleft)
+        t, tleft = msx.step(t)
         newHour = t // 3600
     
     print("\n")
@@ -142,4 +142,4 @@ def batchExample(fname):
 # Main
 if __name__ == "__main__":
     err = 0
-    err = batchExample("out.rpt")
+    err = batchExample("")

@@ -14,3 +14,29 @@ There is also a script called build that will run the three commands from above.
 ```
 ./scripts/build.sh
 ```
+
+# Usage
+Most of the functions are used in the same fashion as they would be in the C API, however it is not necessary to
+check the return values for an error code anymore. If an error occurs, an exception will be thrown stating the error code.
+The only major difference in calling functions using the python wrapper for epanet-msx is the way that values are returned.
+If a function in the C API took in a pointer as a parameter that was intended to be used as an output, it now will be returned
+by the function.
+For example:
+```
+// In C
+int MSXgetindex(int type, char *id, int *index);
+# In Python
+index = msx.getindex(type, id)
+```
+If there are multiple pointers given that will be used for output. Python handles it like this:
+```
+// In C
+int MSXgetspecies(int index, int *type, char *units, double *aTol, double *rTol);
+# In Python
+type, units, aTol, rTol = msx.getspecies(index)
+```
+Currently there is only one function that uses a pointer variable for both input and output and it is the "t" variable in MSXstep.
+Example usage:
+```
+t, tleft = msx.step(t)
+```

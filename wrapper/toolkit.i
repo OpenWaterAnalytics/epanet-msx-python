@@ -46,6 +46,10 @@
     double *level
 }
 
+%apply long *OUTPUT {
+    long *tleft
+}
+
 %cstring_bounded_output(char *OUTCHAR, MAXMSG);
 
 %apply char *OUTCHAR {
@@ -54,8 +58,7 @@
 }
 
 %apply long *INOUT {
-    long *t,
-    long *tleft
+    long *t
 };
 
 // %nodefault Project;

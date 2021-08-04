@@ -141,7 +141,7 @@ def test_sim1():
     tleft = -1
     qual = []
     for _ in range(5):
-        t, tleft = msx.step(t, tleft)
+        t, tleft = msx.step(t)
         qual.append(round(msx.getQualityByID(msx.LINK, "5", "AS5s"), 5))
     assert qual == [0.00013, 0.00009, 0.00004, 0.54024, 3.69831]
 

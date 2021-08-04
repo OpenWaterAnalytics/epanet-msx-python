@@ -90,7 +90,7 @@ def example(fname):
     flows = make_array([0.150088, 0.039916, 0.069952, 0.006563, 0.022562])
     msx.setHydraulics(demands, heads, flows)
     t = 0
-    tleft = 1
+    tleft = 1   # Value will be updated when MSXstep is called
     oldHour = -1
     newHour = 0
 
@@ -102,7 +102,7 @@ def example(fname):
             msx.printQuality(msx.LINK, "4", "AS5s", fname)
             msx.printQuality(msx.LINK, "5", "AS5s", fname)
             oldHour = newHour
-        t, tleft = msx.step(t, tleft)
+        t, tleft = msx.step(t)
         newHour = t // 3600
 
     # Close
