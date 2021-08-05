@@ -114,3 +114,4 @@ def example(fname):
 if __name__ == "__main__":
     err = 0
     err = example("out.rpt")
+    print("")
