@@ -7,6 +7,7 @@
 /* arrays for toolkit functions wanting lists */
 %array_class(int, intArray);
 %array_class(float, floatArray);
+%array_class(double, doubleArray);
 
 %module (package="epanetmsx") toolkit
 %{

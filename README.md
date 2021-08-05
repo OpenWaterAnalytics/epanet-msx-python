@@ -40,3 +40,13 @@ Example usage:
 ```
 t, tleft = msx.step(t)
 ```
+
+# Tests
+There is a tests directory with a file that can be run using pytest for unit tests. All of the tests that are currently available
+are very basic, and mainly only test functions that are not utilized in either of the examples. Both of the examples are working,
+and therefore all of the critical functions that those use are working. It is more important that the example functions are running
+properly than the tests passing since the examples use more critical functions.
+To run the tests:
+```
+pytest tests/test_msx.py
+```

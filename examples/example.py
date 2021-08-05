@@ -1,3 +1,4 @@
+from sys import argv
 from epanetmsx import toolkit as msx
 
 MINUTE = 60
@@ -113,5 +114,9 @@ def example(fname):
 # Main
 if __name__ == "__main__":
     err = 0
-    err = example("out.rpt")
+    if len(argv) > 1:
+        fname = argv[1]
+    else:
+        fname  = ""
+    err = example(fname)
     print("")

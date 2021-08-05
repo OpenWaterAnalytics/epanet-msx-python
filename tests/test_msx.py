@@ -1,8 +1,14 @@
 import pytest
 from epanetmsx import toolkit as msx
 
-def make_array(values):
+def make_floatarray(values):
     arr = msx.floatArray(len(values))
+    for i in range(len(values)):
+        arr[i] = values[i]
+    return arr
+
+def make_doublearray(values):
+    arr = msx.doubleArray(len(values))
     for i in range(len(values)):
         arr[i] = values[i]
     return arr
@@ -130,20 +136,108 @@ def test_getspecies():
     assert type == msx.WALL and units == "UG" and aTol == 90.0 and rTol == 5.0
     msx.close()
 
-def test_sim1():
+def test_getconstant():
+    msx.open()
+    msx.addCoefficeint(msx.CONSTANT, "a", 100.0)
+    msx.addCoefficeint(msx.CONSTANT, "b", 1.0)
+    msx.addCoefficeint(msx.CONSTANT, "c", 88.0)
+    values = []
+    values.append(msx.getconstant(1))
+    values.append(msx.getconstant(2))
+    values.append(msx.getconstant(3))
+    assert values == [100.0, 1.0, 88.0]
+    msx.close()
+
+def test_getparameter():
+    msx.open()
+    msx.addNode("a")
+    msx.addNode("b")
+    msx.addLink("1", "a", "b", 1000, 4, 100)
+    msx.addCoefficeint(msx.PARAMETER, "a", 100.0)
+    msx.addParameter("PIPE", "a", 100.0, "1")
+    values = msx.getparameter(msx.LINK, 1, 1)
+    assert values == 100.0
+    msx.close()
+
+def test_getsource():
+    msx.open()
+    msx.addNode("a")
+    msx.addNode("b")
+    msx.addLink("1", "a", "b", 1000, 4, 100)
+    msx.addSpecies("nh2cl", msx.BULK, msx.UG, 1.0, 2.0)
+    arr = make_doublearray([3.3, 4.4, 5.5])
+    msx.addpattern("p")
+    msx.setpattern(1, arr, 3)
+    msx.addSource(msx.CONCEN, "a", "nh2cl", 900.0, "p")
+    t, level, pat = msx.getsource(1, 1)
+    assert t == msx.CONCEN and level == 900.0 and pat == 1
+    msx.close()
+
+def test_getpatternlen():
+    msx.open()
+    msx.addNode("a")
+    msx.addNode("b")
+    msx.addLink("1", "a", "b", 1000, 4, 100)
+    msx.addSpecies("nh2cl", msx.BULK, msx.UG, 1.0, 2.0)
+    arr = make_doublearray([3.3, 4.4, 5.5])
+    msx.addpattern("p")
+    msx.setpattern(1, arr, 3)
+    length = msx.getpatternlen(1)
+    assert length == 3
+    msx.close()
+
+def test_getpattern():
+    msx.open()
+    msx.addNode("a")
+    msx.addNode("b")
+    msx.addLink("1", "a", "b", 1000, 4, 100)
+    msx.addSpecies("nh2cl", msx.BULK, msx.UG, 1.0, 2.0)
+    arr = make_doublearray([3.3, 4.4, 5.5])
+    msx.addpattern("p")
+    msx.setpattern(1, arr, 3)
+    values = []
+    values.append(msx.getpatternvalue(1,1))
+    values.append(msx.getpatternvalue(1,2))
+    values.append(msx.getpatternvalue(1,3))
+    assert values == [3.3, 4.4, 5.5]
+    msx.close()
+
+def test_getinitqual():
+    create_example()
+    init = msx.getinitqual(msx.NODE, 1, 2)
+    assert init == 0
+    msx.close()
+
+def test_quality_by_index():
     create_example()
     msx.init()
-    demands = make_array([0.040220, 0.033353, 0.053953, 0.022562, -0.150088])
-    heads = make_array([327.371979, 327.172974, 327.164185, 326.991211, 328.083984])
-    flows = make_array([0.150088, 0.039916, 0.069952, 0.006563, 0.022562])
+    demands = make_floatarray([0.040220, 0.033353, 0.053953, 0.022562, -0.150088])
+    heads = make_floatarray([327.371979, 327.172974, 327.164185, 326.991211, 328.083984])
+    flows = make_floatarray([0.150088, 0.039916, 0.069952, 0.006563, 0.022562])
     msx.setHydraulics(demands, heads, flows)
     t = 0
-    tleft = -1
+    qual = []
+    for _ in range(5):
+        t, tleft = msx.step(t)
+        species_index = msx.getindex(msx.SPECIES, "AS5s")
+        qual.append(round(msx.getQualityByIndex(msx.LINK, 5, species_index), 5))
+    assert qual == [0.00013, 0.00009, 0.00004, 0.54024, 3.69831]
+    msx.close()
+
+def test_quality_by_id():
+    create_example()
+    msx.init()
+    demands = make_floatarray([0.040220, 0.033353, 0.053953, 0.022562, -0.150088])
+    heads = make_floatarray([327.371979, 327.172974, 327.164185, 326.991211, 328.083984])
+    flows = make_floatarray([0.150088, 0.039916, 0.069952, 0.006563, 0.022562])
+    msx.setHydraulics(demands, heads, flows)
+    t = 0
     qual = []
     for _ in range(5):
         t, tleft = msx.step(t)
         qual.append(round(msx.getQualityByID(msx.LINK, "5", "AS5s"), 5))
     assert qual == [0.00013, 0.00009, 0.00004, 0.54024, 3.69831]
+    msx.close()
 
 
     
