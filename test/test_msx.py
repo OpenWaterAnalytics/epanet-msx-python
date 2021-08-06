@@ -354,4 +354,53 @@ def test_quality_by_id2():
     msx.close()
 
 
+def test_quality_by_id3():
+    create_example2()
+    msx.init()
+    demands = make_floatarray([0.0, 0.0])
+    heads = make_floatarray([10.0, 10.0])
+    flows = make_floatarray([0.0])
+    msx.setHydraulics(demands, heads, flows)
+    t = 0
+    qual = []
+    for i in range(60):
+        if i % 12 == 0: # First 5 hours
+            qual.append(round(msx.getQualityByID(msx.LINK, "1", "chloramine"), 6))
+        t, tleft = msx.step(t)
+    print(qual)
+    assert qual == [0.0, 0.049675, 0.049504, 0.049358, 0.049223]
+    msx.close()
+
+def test_quality_by_id4():
+    create_example1()
+    msx.init()
+    demands = make_floatarray([0.040220, 0.033353, 0.053953, 0.022562, -0.150088])
+    heads = make_floatarray([327.371979, 327.172974, 327.164185, 326.991211, 328.083984])
+    flows = make_floatarray([0.150088, 0.039916, 0.069952, 0.006563, 0.022562])
+    msx.setHydraulics(demands, heads, flows)
+    t = 0
+    qual = []
+    for i in range(5):
+        qual.append(round(msx.getQualityByID(msx.NODE, "third", "NH2CL"), 2))
+        t, tleft = msx.step(t)
+    print(qual)
+    assert qual == [0.0, 0.77, 1.10, 1.10, 1.10]
+    msx.close()
+
+def test_quality_by_id5():
+    create_example1()
+    msx.init()
+    demands = make_floatarray([0.040220, 0.033353, 0.053953, 0.022562, -0.150088])
+    heads = make_floatarray([327.371979, 327.172974, 327.164185, 326.991211, 328.083984])
+    flows = make_floatarray([0.150088, 0.039916, 0.069952, 0.006563, 0.022562])
+    msx.setHydraulics(demands, heads, flows)
+    t = 0
+    qual = []
+    for i in range(10):
+        qual.append(round(msx.getQualityByID(msx.NODE, "third", "AS5"), 2))
+        t, tleft = msx.step(t)
+    print(qual)
+    assert qual == [0.0, 0.0, 0.0, 0.0, 7.45, 9.18, 9.18, 9.18, 9.18, 9.18]
+    msx.close()
+
 
