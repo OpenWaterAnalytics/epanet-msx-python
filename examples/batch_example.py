@@ -1,5 +1,5 @@
+from sys import argv
 from epanetmsx import toolkit as msx
-import ctypes
 
 MINUTE = 60
 HOUR = 60 * 60
@@ -130,9 +130,6 @@ def batchExample(fname):
             oldHour = newHour
         t, tleft = msx.step(t)
         newHour = t // 3600
-    
-    print("\n")
-
 
     # Close
     msx.close()
@@ -142,4 +139,9 @@ def batchExample(fname):
 # Main
 if __name__ == "__main__":
     err = 0
-    err = batchExample("")
+    if len(argv) > 1:
+        fname = argv[1]
+    else:
+        fname  = ""
+    err = batchExample(fname)
+    print("")
