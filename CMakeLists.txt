@@ -62,12 +62,12 @@ IF(WIN32)
     add_custom_command(
             TARGET _toolkit POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy
-                    ${CMAKE_CURRENT_BINARY_DIR}/lib/_toolkit.pyd
+                    ${CMAKE_CURRENT_BINARY_DIR}/lib/Release/_toolkit.pyd
                     ${CMAKE_CURRENT_BINARY_DIR}/../../../packages/epanetmsx/_toolkit.pyd)
     add_custom_command(
             TARGET _toolkit POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy
-                    ${CMAKE_CURRENT_BINARY_DIR}/bin/msxcore.dll
+                    ${CMAKE_CURRENT_BINARY_DIR}/bin/Release/msxcore.dll
                     ${CMAKE_CURRENT_BINARY_DIR}/../../../packages/epanetmsx/msxcore.dll)
 ELSE(True)
     add_custom_command(
