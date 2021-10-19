@@ -17,7 +17,7 @@ jobs:
         include:
           - os: windows-latest
             sys_pkgs: choco install swig
-            rm_dir: rmdir /S /Q epanet-msx
+            rm_dir: Remove-Item -Path epanet-msx -Force -Recurse
           - os: macos-latest
             sys_pkgs: brew install swig
             rm_dir: rm -rf epanet-msx
