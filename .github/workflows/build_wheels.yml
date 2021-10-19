@@ -8,7 +8,7 @@ env:
 
 jobs:
   build_windows_mac_wheels:
-    name: Build wheel for ${{ matrix.os }} with python${{ matrix.python }}
+    name: Build wheel for ${{ matrix.os }} with python${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -17,8 +17,10 @@ jobs:
         include:
           - os: windows-latest
             sys_pkgs: choco install swig
+            rm_dir: rmdir epanet-msx /s /q
           - os: macos-latest
             sys_pkgs: brew install swig
+            rm_dir: rm -rf epanet-msx
 
     steps:
       - name: Checkout code
@@ -28,7 +30,7 @@ jobs:
       #     Had issues with not all files being pulled and this somehow resolved it
       - name: Fix submodules
         run: |
-          rm -rf epanet-msx
+          ${{matrix.rm_dir}}
           git submodule update
 
       - name: Install Python
@@ -39,7 +41,7 @@ jobs:
       - name: Setup dependencies
         run: |
           ${{matrix.sys_pkgs}}
-          pip install -r build-requirements.txt
+          pip install -r scikit-build==0.11.1 cmake==3.18.4
 
       - name: Build wheel
         run: python setup.py bdist_wheel
@@ -65,18 +67,22 @@ jobs:
           rm -rf epanet-msx
           git submodule update
 
-      - name: Install
-        run: |
-          docker pull $DOCKER_IMAGE
-          docker run --rm $DOCKER_IMAGE > ./dockcross
-          chmod +x ./dockcross
-      - name: Script
-        run: ./dockcross scripts/build-wheels.sh
+      - name: Install Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Build manylinux Python wheels
+        uses: RalfG/python-wheels-manylinux-build@v0.3.4-manylinux2010_x86_64
+        with:
+          python-versions: 'cp36-cp36m cp37-cp37m cp38-cp38 cp39-cp39 cp310-cp310'
+          build-requirements: 'cmake==3.18.4 scikit-build==0.11.1'
+          system-packages: 'swig'
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
-          path: ./combined-dist/*.manylinux2014_x86_64.whl
+          path: ./dist/*-manylinux*.whl
 
 
 
