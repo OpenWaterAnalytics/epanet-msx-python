@@ -19,7 +19,7 @@ jobs:
             sys_pkgs: choco install swig
             rm_dir: Remove-Item -Path epanet-msx -Force -Recurse
           - os: macos-latest
-            sys_pkgs: brew install swig
+            sys_pkgs: brew install swig ninja
             rm_dir: rm -rf epanet-msx
 
     steps:
@@ -53,6 +53,7 @@ jobs:
 
   build_linux_wheels:
     name: Build wheels on linux
+    fail-fast: false
     runs-on: ubuntu-latest
 
     steps:
