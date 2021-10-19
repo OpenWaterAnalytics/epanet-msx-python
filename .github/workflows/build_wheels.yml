@@ -17,7 +17,7 @@ jobs:
         include:
           - os: windows-latest
             sys_pkgs: choco install swig
-            rm_dir: rmdir epanet-msx /s /q
+            rm_dir: rmdir /S /Q epanet-msx
           - os: macos-latest
             sys_pkgs: brew install swig
             rm_dir: rm -rf epanet-msx
@@ -41,7 +41,7 @@ jobs:
       - name: Setup dependencies
         run: |
           ${{matrix.sys_pkgs}}
-          pip install -r scikit-build==0.11.1 cmake==3.18.4
+          pip install scikit-build==0.11.1 cmake==3.18.4
 
       - name: Build wheel
         run: python setup.py bdist_wheel
