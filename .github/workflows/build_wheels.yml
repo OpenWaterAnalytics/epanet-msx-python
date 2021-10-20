@@ -20,7 +20,7 @@ jobs:
             sys_pkgs: choco install swig
             rm_dir: Remove-Item -Path epanet-msx -Force -Recurse
           - os: macos-latest
-            sys_pkgs: brew install swig ninja
+            sys_pkgs: brew install swig ninja libomp
             rm_dir: rm -rf epanet-msx
 
     steps:
@@ -43,6 +43,10 @@ jobs:
         run: |
           ${{matrix.sys_pkgs}}
           pip install scikit-build==0.11.1 cmake==3.18.4
+
+      - name: Setup windows dependencies
+        uses: ilammy/msvc-dev-cmd@v1
+        if: startsWith(matrix.os, 'windows')
 
       - name: Build wheel
         run: python setup.py bdist_wheel
