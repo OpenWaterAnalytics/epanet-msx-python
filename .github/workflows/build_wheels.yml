@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  full_build_wheels:
+  build_wheels:
     name: Build wheel for cp${{ matrix.python }}-${{ matrix.platform_id }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -87,7 +87,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update
-          apt install swig -y
+          sudo apt install swig -y
           pip install scikit-build==0.11.1 cmake==3.18.4
 
       - name: Build sdist
@@ -96,3 +96,18 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           path: dist/*.tar.gz
+
+#  upload_pypi:
+#    needs: [ build_wheels, build_sdist ]
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#      - uses: actions/download-artifact@v2
+#        with:
+#          name: artifact
+#          path: dist
+#
+#      - uses: pypa/gh-action-pypi-publish@v1.4.2
+#        with:
+#          user: __token__
+#          password: ${{ secrets.PYPI_API_TOKEN }}
