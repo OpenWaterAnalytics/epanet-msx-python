@@ -11,7 +11,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ windows-latest, ubuntu-latest, macos-latest ]
-        python: [ 36, 37, 38, 39, 310]
+        python: [ 36, 37, 38, 39]
         bitness: [ 32, 64 ]
         include:
           # Run 32 and 64 bit version in parallel for Linux and Windows
@@ -54,7 +54,7 @@ jobs:
         env:
           CIBW_BUILD: cp${{ matrix.python }}-${{ matrix.platform_id }}
           CIBW_BEFORE_ALL_LINUX: rm -rf epanet-msx && git submodule update && yum install swig -y
-          CIBW_BEFORE_ALL_WINDOWS: Remove-Item -Path epanet-msx -Force -Recurse && choco install swig
+          CIBW_BEFORE_ALL_WINDOWS: rmdir /s /q epanet-msx && choco install swig
           CIBW_BEFORE_ALL_MACOS: rm -rf epanet-msx && git submodule update && brew install swig ninja libomp
           CIBW_BEFORE_BUILD: pip install scikit-build==0.11.1 cmake==3.18.4
           CIBW_BUILD_VERBOSITY: 1
