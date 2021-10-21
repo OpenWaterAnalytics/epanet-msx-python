@@ -1,80 +1,99 @@
 cmake_minimum_required(VERSION 3.12)
 
-project(EPANET-MSX)
+project(epanet-msx)
 
 if(SKBUILD)
   message(STATUS "The project is built using scikit-build")
 endif()
 
-find_package(PythonLibs 3 REQUIRED)
-find_package(PythonInterp ${PYTHONLIBS_VERSION_STRING} REQUIRED)
-# If find_package() has difficulty finding the appropriate python 
-# directories and libraries (especially in Windows with multiple 
-# versions of python) set them manually as in the next three lines 
-# below (and comment out the above two find_package() lines):
-# set(PYTHON_EXECUTABLE "c:/python/python38/python.exe")
-# set(PYTHON_INCLUDE_PATH "c:/python/python38/include")
-# set(PYTHON_LIBRARIES "c:/python/python38/libs/python38.lib")
+# Setup python
+if(NOT MSVC)
+    find_package (Python3 ${PYTHON_VERSION_STRING} COMPONENTS Interpreter Development.Module EXACT REQUIRED)
+else()
+    find_package (Python3 ${PYTHON_VERSION_STRING} COMPONENTS Interpreter Development EXACT REQUIRED)
+endif()
 
+
+# Setup swig
 find_package(SWIG REQUIRED)
+cmake_policy(SET CMP0078 NEW)
+cmake_policy(SET CMP0086 NEW)
 include(${SWIG_USE_FILE})
 set(CMAKE_SWIG_FLAGS -py3)
 
-message("PYTHONLIBS_VERSION_STRING: ${PYTHONLIBS_VERSION_STRING}")
-message("CMAKE_SWIG_FLAGS: ${CMAKE_SWIG_FLAGS}")
+# Build the msx library
+ADD_SUBDIRECTORY(epanet-msx/MSX\ Core)
 
-INCLUDE_DIRECTORIES(${PYTHON_INCLUDE_PATH})
+# Set up rpath on MacOS and Linux
+if(APPLE)
+    set(PACKAGE_RPATH "@loader_path")
+else()
+    set(PACKAGE_RPATH "$ORIGIN")
+endif()
+
+
+# Include files for swig
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
 INCLUDE_DIRECTORIES(epanet-msx/MSX\ Core/include)
 
-SET(CMAKE_SWIG_FLAGS "")
+# Allow target_include_directories to be used later
+set_property(SOURCE wrapper/toolkit.i
+    PROPERTY
+        USE_TARGET_INCLUDE_DIRECTORIES TRUE
+)
+set_property(TARGET msxcore
+    PROPERTY
+        USE_TARGET_INCLUDE_DIRECTORIES TRUE
+)
 
-#SET_SOURCE_FILES_PROPERTIES(toolkit.i PROPERTIES CPLUSPLUS ON)
-SET_SOURCE_FILES_PROPERTIES(toolkit.i PROPERTIES SWIG_FLAGS "-includeall")
+# Create cmake target
+swig_add_library(toolkit
+    TYPE
+        MODULE
+    LANGUAGE
+        python
+    SOURCES
+        wrapper/toolkit.i
+)
+
+# check if this is actually needed
+target_include_directories(toolkit
+    PUBLIC
+        ${Python3_INCLUDE_DIRS}
+)
 
 
-# build the msx library
-ADD_SUBDIRECTORY(epanet-msx/MSX\ Core)
+# target_link_options(toolkit
+#     PUBLIC
+#         $<$<BOOL:${APPLE}>:-undefined dynamic_lookup>
+# )
 
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
-SWIG_ADD_LIBRARY( toolkit LANGUAGE python SOURCES wrapper/toolkit.i )
-set_property(SOURCE toolkit.i PROPERTY USE_LIBRARY_INCLUDE_DIRECTORIES TRUE)
-set_property(TARGET msxcore PROPERTY SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE)
-SWIG_LINK_LIBRARIES(toolkit msxcore)
+swig_link_libraries(toolkit
+    PUBLIC
+        $<$<BOOL:$<C_COMPILER_ID:MSVC>>:Python3::Module>
+        msxcore
+)
 
-SWIG_LINK_LIBRARIES(toolkit ${PYTHON_LIBRARIES})
-set_property(TARGET _toolkit PROPERTY INSTALL_RPATH "$ORIGIN")
+set_target_properties(toolkit
+    PROPERTIES
+        SWIG_COMPILE_DEFINITIONS EXPORT_OUT_API
+        MACOSX_RPATH TRUE
+        SKIP_BUILD_RPATH FALSE
+        BUILD_WITH_INSTALL_RPATH FALSE
+        INSTALL_RPATH "${PACKAGE_RPATH}"
+        INSTALL_RPATH_USE_LINK_PATH TRUE
+)
 
-IF (APPLE)
-  set_target_properties(_toolkit PROPERTIES INSTALL_RPATH "@loader_path")
-ENDIF (APPLE)
-
-install(TARGETS _toolkit LIBRARY DESTINATION packages/epanetmsx)
+install(TARGETS toolkit LIBRARY DESTINATION packages/epanetmsx)
 
 add_custom_command(
-        TARGET _toolkit POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-                ${CMAKE_CURRENT_BINARY_DIR}/toolkit.py
-                ${CMAKE_CURRENT_BINARY_DIR}/../../../packages/epanetmsx/toolkit.py)
-
-IF(WIN32)
-    add_custom_command(
-            TARGET _toolkit POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy
-                    ${CMAKE_CURRENT_BINARY_DIR}/lib/Release/_toolkit.pyd
-                    ${CMAKE_CURRENT_BINARY_DIR}/../../../packages/epanetmsx/_toolkit.pyd)
-    add_custom_command(
-            TARGET _toolkit POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy
-                    ${CMAKE_CURRENT_BINARY_DIR}/bin/Release/msxcore.dll
-                    ${CMAKE_CURRENT_BINARY_DIR}/../../../packages/epanetmsx/msxcore.dll)
-ELSE(True)
-    add_custom_command(
-            TARGET _toolkit POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy
-                    ${CMAKE_CURRENT_BINARY_DIR}/lib/libmsxcore.*
-                    ${CMAKE_CURRENT_BINARY_DIR}/../../../packages/epanetmsx/)
-ENDIF(WIN32)
-
-
+    TARGET toolkit
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+        "${CMAKE_CURRENT_BINARY_DIR}/toolkit.py"
+        $<$<BOOL:${WIN32}>:${CMAKE_CURRENT_BINARY_DIR}/_toolkit.pyd>
+        $<$<BOOL:${WIN32}>:${CMAKE_CURRENT_BINARY_DIR}/bin/msxcore.dll>
+        $<$<NOT:$<BOOL:${WIN32}>>:${CMAKE_CURRENT_BINARY_DIR}/lib/libmsxcore.*>
+        ${CMAKE_SOURCE_DIR}/packages/epanetmsx
+)
