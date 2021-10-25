@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 
 project(epanet-msx)
+set(Python3_VERSION ${PYTHON_VERSION_STRING})
 
 if(SKBUILD)
   message(STATUS "The project is built using scikit-build")
