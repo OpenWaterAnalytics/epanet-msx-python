@@ -56,17 +56,16 @@ swig_add_library(toolkit
         wrapper/toolkit.i
 )
 
-# check if this is actually needed
 target_include_directories(toolkit
     PUBLIC
         ${Python3_INCLUDE_DIRS}
 )
 
 
-# target_link_options(toolkit
-#     PUBLIC
-#         $<$<BOOL:${APPLE}>:-undefined dynamic_lookup>
-# )
+target_link_options(toolkit
+    PUBLIC
+        $<$<BOOL:${APPLE}>:-undefined dynamic_lookup>
+)
 
 
 swig_link_libraries(toolkit
